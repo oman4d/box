@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحدي الكيمياء - مدرسة الشيخ عبدالله بن بشير الحضرمي</title>
+    <style>
+        :root {
+            --bg-color: #1e272e;
+            --text-color: #ffdd59;
+            --line-color: #485460;
+            --chest-wood: #8d5524;
+            --gold: #ffd700;
+            --accent: #ef5777;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden; /* يمنع التمرير */
+        }
+
+        /* --- الترويسة المعدلة --- */
+        header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between; /* يوزع العناصر أقصى اليمين وأقصى اليسار */
+            align-items: center;
+            padding: 15px 40px; /* مساحة داخلية */
+            background: rgba(0,0,0,0.3);
+            border-bottom: 2px solid var(--line-color);
+            box-sizing: border-box; /* لضمان عدم خروج البادينج عن العرض */
+        }
+
+        .school-name {
+            font-size: 26px;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            font-weight: bold;
+        }
+
+        .developer-name {
+            font-size: 20px; /* تكبير الخط */
+            color: var(--gold); /* لون ذهبي مميز */
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px 15px;
+            border-radius: 20px;
+            border: 1px solid var(--gold);
+        }
+
+        /* --- المؤقت الدائري --- */
+        .timer-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 20px auto 10px auto;
+        }
+
+        .timer-svg {
+            transform: rotate(-90deg);
+            width: 100%;
+            height: 100%;
+        }
+
+        .circle-bg {
+            fill: none;
+            stroke: #485460;
+            stroke-width: 8;
+        }
+
+        .circle-progress {
+            fill: none;
+            stroke: var(--accent);
+            stroke-width: 8;
+            stroke-dasharray: 283;
+            stroke-dashoffset: 0;
+            transition: stroke-dashoffset 1s linear;
+        }
+
+        .timer-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 28px;
+            font-weight: bold;
+            color: white;
+            font-family: monospace;
+        }
+
+        /* --- منطقة الألغاز --- */
+        .puzzle-area {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 30px;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 220px;
+            position: relative;
+        }
+
+        /* صناديق الأسئلة */
+        .question-box {
+            background: #d2dae2;
+            color: #1e272e;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 15px;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            border: 2px solid var(--gold);
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            z-index: 10;
+        }
+
+        /* الخط الطويل */
+        .long-line {
+            width: 6px;
+            height: 140px; /* زيادة طول الخط */
+            background: linear-gradient(to bottom, var(--gold), var(--line-color));
+            margin-top: -5px;
+            z-index: 1;
+        }
+
+        /* منطقة القفل المجمع */
+        .lock-housing {
+            background: #2f3640;
+            padding: 20px 30px;
+            border-radius: 15px;
+            display: flex;
+            gap: 15px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8), 0 5px 15px rgba(0,0,0,0.5);
+            border: 4px solid #576574;
+            margin-top: -10px; /* تداخل مع الخطوط */
+            z-index: 5;
+            position: relative;
+        }
+
+        .code-input {
+            width: 60px;
+            height: 70px;
+            font-size: 36px;
+            text-align: center;
+            border: 3px solid #576574;
+            border-radius: 8px;
+            background: #000;
+            color: var(--accent);
+            font-family: 'Courier New', Courier, monospace;
+            outline: none;
+        }
+
+        .code-input:focus { border-color: var(--gold); box-shadow: 0 0 10px var(--gold); }
+
+        /* --- صندوق الكنز --- */
+        .chest-wrapper {
+            margin-top: 20px;
+            perspective: 800px;
+            position: relative;
+            height: 150px;
+            width: 220px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .chest-body {
+            width: 200px;
+            height: 110px;
+            background: var(--chest-wood);
+            border: 5px solid #5e3717;
+            position: absolute;
+            bottom: 0;
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.6);
+        }
+
+        .chest-lid {
+            width: 200px;
+            height: 60px;
+            background: var(--chest-wood);
+            border: 5px solid #5e3717;
+            border-radius: 15px 15px 0 0;
+            position: absolute;
+            top: 35px;
+            transform-origin: top;
+            transition: transform 0.8s ease-in-out, top 0.8s;
+            z-index: 5;
+        }
+
+        .chest-lock {
+            width: 30px;
+            height: 40px;
+            background: var(--gold);
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 5px;
+            border: 2px solid #b8860b;
+        }
+
+        /* زر الفتح */
+        .submit-btn {
+            margin-top: 20px;
+            padding: 12px 50px;
+            background: linear-gradient(45deg, #ffd700, #f1c40f);
+            color: #1e272e;
+            border: none;
+            font-weight: bold;
+            font-size: 20px;
+            cursor: pointer;
+            border-radius: 30px;
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+            transition: transform 0.2s;
+        }
+        .submit-btn:hover { transform: scale(1.05); }
+
+        /* تأثير الفتح */
+        .chest-open .chest-lid {
+            transform: rotateX(120deg);
+            top: 10px;
+        }
+        
+        .success-msg {
+            position: absolute;
+            top: -20px;
+            color: #4cd137;
+            font-size: 24px;
+            font-weight: bold;
+            opacity: 0;
+            transition: 0.5s;
+            text-shadow: 0 2px 4px rgba(0,0,0,1);
+            z-index: 20;
+        }
+        .chest-open .success-msg { opacity: 1; top: -50px; }
+
+        /* شاشة البداية */
+        #start-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        #start-btn {
+            padding: 20px 60px;
+            font-size: 28px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 0 20px var(--accent);
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239, 87, 119, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(239, 87, 119, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 87, 119, 0); } }
+
+    </style>
+</head>
+<body>
+
+    <div id="start-overlay">
+        <h1 style="color: var(--gold); margin-bottom: 30px;">🔐 غرفة الهروب الكيميائية</h1>
+        <button id="start-btn" onclick="startChallenge()">ابدأ التحدي 🔊</button>
+        <p style="color: #aaa; margin-top: 20px;">تأكد من رفع صوت الجهاز</p>
+    </div>
+
+    <header>
+        <div class="school-name">مدرسة الشيخ عبدالله بن بشير الحضرمي</div>
+        <div class="developer-name">تطوير أ.يحيى الكشري</div>
+    </header>
+
+    <div class="timer-container">
+        <svg class="timer-svg" viewBox="0 0 100 100">
+            <circle class="circle-bg" cx="50" cy="50" r="45"></circle>
+            <circle class="circle-progress" id="progress-ring" cx="50" cy="50" r="45"></circle>
+        </svg>
+        <div class="timer-text" id="timer-label">05:00</div>
+    </div>
+
+    <div class="puzzle-area">
+        <div class="column">
+            <div class="question-box">ما العدد الذري لعنصر<br>(المجموعة 1، الدورة 3)؟</div>
+            <div class="long-line"></div>
+        </div>
+        <div class="column">
+            <div class="question-box">ما تكافؤ عنصر الكلور؟</div>
+            <div class="long-line"></div>
+        </div>
+        <div class="column">
+            <div class="question-box">كم عدد الذرات في<br>مركب NaCl؟</div>
+            <div class="long-line"></div>
+        </div>
+    </div>
+
+    <div class="lock-housing">
+        <input type="text" class="code-input" id="inp1" maxlength="2" placeholder="--">
+        <input type="text" class="code-input" id="inp2" maxlength="1" placeholder="-">
+        <input type="text" class="code-input" id="inp3" maxlength="1" placeholder="-">
+    </div>
+
+    <button class="submit-btn" onclick="checkCode()">فتح الصندوق</button>
+
+    <div class="chest-wrapper" id="chest">
+        <div class="success-msg">🎉 أحسنتم! الإجابة صحيحة</div>
+        <div class="chest-body"></div>
+        <div class="chest-lid">
+            <div class="chest-lock"></div>
+        </div>
+    </div>
+
+    <script>
+        const TOTAL_TIME = 300; // 5 دقائق
+        let timeLeft = TOTAL_TIME;
+        let timerInterval;
+        let audioCtx;
+        
+        const ANSWERS = ["11", "1", "2"];
+
+        function startChallenge() {
+            document.getElementById('start-overlay').style.display = 'none';
+            
+            // تهيئة الصوت (Web Audio API) بصوت مرتفع
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+            
+            startTimer();
+        }
+
+        function startTimer() {
+            const circle = document.getElementById('progress-ring');
+            const radius = circle.r.baseVal.value;
+            const circumference = radius * 2 * Math.PI;
+            const label = document.getElementById('timer-label');
+
+            circle.style.strokeDasharray = `${circumference} ${circumference}`;
+
+            // تشغيل أول دقة فوراً
+            playTick(timeLeft % 2 === 0);
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                
+                // تحديث الوقت
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                label.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                // تحديث الدائرة
+                const offset = circumference - (timeLeft / TOTAL_TIME) * circumference;
+                circle.style.strokeDashoffset = offset;
+
+                // تشغيل الصوت (تيك-توك)
+                if (timeLeft > 0) {
+                    playTick(timeLeft % 2 === 0);
+                } else {
+                    playAlarm(); // صوت انتهاء الوقت
+                    clearInterval(timerInterval);
+                    label.style.color = "red";
+                    alert("⏰ انتهى الوقت!");
+                }
+            }, 1000);
+        }
+
+        // دالة توليد صوت التيك توك (عالي وواضح)
+        function playTick(isHighPitch) {
+            if (!audioCtx) return;
+            
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            // استخدام موجة مربعة لصوت حاد وقوي
+            osc.type = 'square';
+            
+            // التردد: عالي ومنخفض لمحاكاة الساعة
+            osc.frequency.setValueAtTime(isHighPitch ? 800 : 600, audioCtx.currentTime);
+            
+            // رفع الصوت (Gain) ليكون مسموعاً
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime); // 50% volume (loud)
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.1); // مدة قصيرة جداً
+        }
+
+        function playAlarm() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+            gain.gain.value = 0.8;
+            osc.start();
+            osc.stop(audioCtx.currentTime + 1);
+        }
+
+        function playWinSound() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = 'triangle';
+            
+            // نغمة الفوز
+            osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // Do
+            osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.2); // Mi
+            osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.4); // Sol
+            osc.frequency.setValueAtTime(1046.50, audioCtx.currentTime + 0.6); // High Do
+            
+            gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.5);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 1.5);
+        }
+
+        function checkCode() {
+            const v1 = document.getElementById('inp1').value.trim();
+            const v2 = document.getElementById('inp2').value.trim();
+            const v3 = document.getElementById('inp3').value.trim();
+            const inputs = [document.getElementById('inp1'), document.getElementById('inp2'), document.getElementById('inp3')];
+
+            if (v1 === ANSWERS[0] && v2 === ANSWERS[1] && v3 === ANSWERS[2]) {
+                // ✅ فوز
+                document.getElementById('chest').classList.add('chest-open');
+                playWinSound();
+                clearInterval(timerInterval); // إيقاف الوقت
+                document.querySelector('.submit-btn').style.display = 'none';
+                
+                inputs.forEach(i => {
+                    i.style.borderColor = "#4cd137";
+                    i.style.color = "#4cd137";
+                    i.disabled = true;
+                });
+
+            } else {
+                // ❌ خطأ
+                // صوت خطأ سريع
+                if(audioCtx) {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.connect(g); g.connect(audioCtx.destination);
+                    o.type = 'sawtooth'; o.frequency.value = 150; 
+                    g.gain.value = 0.8;
+                    o.start(); o.stop(audioCtx.currentTime + 0.2);
+                }
+
+                // حركة اهتزاز
+                const housing = document.querySelector('.lock-housing');
+                housing.style.transform = "translateX(10px)";
+                setTimeout(() => housing.style.transform = "translateX(-10px)", 100);
+                setTimeout(() => housing.style.transform = "translateX(0)", 200);
+                
+                if(v1 !== ANSWERS[0]) inputs[0].style.borderColor = "red";
+                if(v2 !== ANSWERS[1]) inputs[1].style.borderColor = "red";
+                if(v3 !== ANSWERS[2]) inputs[2].style.borderColor = "red";
+                
+                setTimeout(() => {
+                    inputs.forEach(i => i.style.borderColor = "#576574");
+                }, 1000);
+            }
+        }
+    </script>
+</body>
+</html>
